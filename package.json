@@ -10,10 +10,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.2",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/ios": "^7.4.2",
+    "@hookform/resolvers": "^5.1.1",
     "@tailwindcss/vite": "^4.1.11",
+    "@types/react-router-dom": "^5.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.11"
+    "react-hook-form": "^7.60.0",
+    "react-router-dom": "^7.6.3",
+    "tailwindcss": "^4.1.11",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
