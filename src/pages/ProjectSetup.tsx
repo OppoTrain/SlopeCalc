@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { projectSchema, type ProjectFormData } from "../types/project";
 import ProjectDetailsSection from "../components/ProjectDetails";
 import BackButton from "../components/BackButton";
+import CameraBtn from "../components/CameraBtn";
+import { calculateSlope } from "../utils/calculateSlope";
+import { resetConnectors } from "../utils/resetConnectors";
 
 const ProjectSetup = () => {
     const { id } = useParams();
@@ -12,11 +15,13 @@ const ProjectSetup = () => {
 
     const [project, setProject] = useState<ProjectFormData | null>(null);
     const [slope, setSlope] = useState<number | null>(null);
+    const [isEdit, setIsEdit] = useState<boolean>(false);
 
     const {
         register,
         handleSubmit,
         reset,
+        getValues,
         formState: { errors },
     } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
@@ -35,55 +40,80 @@ const ProjectSetup = () => {
 
         if (currentProject) {
             reset(currentProject);
-
             const slopeValue = currentProject.projectDetails?.slope;
             if (slopeValue) {
                 setSlope(parseFloat(slopeValue));
             }
+            setIsEdit(!!slopeValue);
         }
     }, [id, reset]);
 
-    const isReadOnly = !!project?.projectDetails?.slope;
+    const handleCalculateSlope = () => {
+        const formValues = getValues();
+        const calculatedSlope = calculateSlope(formValues);
 
-    const onSubmit = (data: ProjectFormData) => {
-        const startElevation = data.elevationsDetails?.startElevation ?? 0;
-        const endElevation = data.elevationsDetails?.endElevation ?? 0;
-        const length = data.pipeDetails.pipeLength ?? 1;
+        setSlope(calculatedSlope);
 
-        const rise = endElevation - startElevation;
-        const calculatedSlope = (rise / length) * 100;
-        const roundedSlope = parseFloat(calculatedSlope.toFixed(2));
-
-        setSlope(roundedSlope);
-
-        const updatedProject = {
-            ...data,
-            id,
+        const updatedProject: ProjectFormData = {
+            ...formValues,
             projectDetails: {
-                ...data.projectDetails,
-                slope: roundedSlope.toString(),
+                ...formValues.projectDetails,
+                slope: calculatedSlope.toString(),
             },
         };
 
+        setProject(updatedProject);
+    };
+
+    const onSubmit = (data: ProjectFormData) => {
         const storedProjects = JSON.parse(
             localStorage.getItem("projects") || "[]"
         );
-        const updatedProjects = storedProjects.map((proj: ProjectFormData) =>
-            proj.id === id ? updatedProject : proj
+        const currentProject: ProjectFormData = storedProjects.find(
+            (p: ProjectFormData) => p.id === id
         );
 
+        if (slope?.toString() === currentProject.projectDetails?.slope) {
+            navigate(`/projects/${id}/connector`);
+            return;
+        }
+
+        const updatedData: ProjectFormData = {
+            ...data,
+            projectDetails: {
+                ...data.projectDetails,
+                slope: slope?.toString(),
+            },
+        };
+
+        const updatedProjects = storedProjects.map((proj: ProjectFormData) =>
+            proj.id === data.id ? updatedData : proj
+        );
         localStorage.setItem("projects", JSON.stringify(updatedProjects));
+        setIsEdit(true);
+        resetConnectors(data.id ?? "0");
+        navigate(`/projects/${id}/connector`);
     };
 
-    const handleNext = () => {
-        navigate(`/projects/${id}/connector`);
+    const handleEdit = () => {
+        if (
+            window.confirm(
+                "Are you sure you want to edit the slope?\nBy doing this, you will lose all connector data."
+            )
+        ) {
+            setIsEdit(false);
+        }
     };
 
     if (!project) return <div>Loading project...</div>;
 
     return (
         <>
-            <BackButton />
+            <div className="flex justify-between items-center mt-4 mx-4">
+                <BackButton />
+                <CameraBtn id={project.id ?? "0"} />
+            </div>
+
             <ProjectDetailsSection project={project} />
             <form
                 onSubmit={handleSubmit(onSubmit)}
@@ -94,12 +124,24 @@ const ProjectSetup = () => {
                         Pipe Setup
                     </h2>
                     <button
-                        className="text-gray-500 hover:text-gray-700 transition"
+                        className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-xl text-sm font-medium transition"
+                        onClick={handleEdit}
                         type="button"
-                        aria-label="Capture Photo"
-                        title="Capture Photo"
                     >
-                        📷
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-6"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                            />
+                        </svg>
                     </button>
                 </div>
 
@@ -111,7 +153,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
-                            disabled={isReadOnly}
+                            disabled={isEdit}
                             {...register("pipeDetails.pipeLength", {
                                 valueAsNumber: true,
                             })}
@@ -131,7 +173,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
-                            disabled={isReadOnly}
+                            disabled={isEdit}
                             {...register("elevationsDetails.startElevation", {
                                 valueAsNumber: true,
                             })}
@@ -154,7 +196,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
-                            disabled={isReadOnly}
+                            disabled={isEdit}
                             {...register("elevationsDetails.endElevation", {
                                 valueAsNumber: true,
                             })}
@@ -168,9 +210,10 @@ const ProjectSetup = () => {
                     </div>
                 </div>
 
-                {!isReadOnly && (
+                {!isEdit && (
                     <button
-                        type="submit"
+                        type="button"
+                        onClick={handleCalculateSlope}
                         className="w-full bg-[#5AB8C8] hover:bg-[#499cac] text-white font-semibold py-2 rounded-lg transition"
                     >
                         Calculate the Slope
@@ -185,8 +228,7 @@ const ProjectSetup = () => {
                         <div className="flex justify-end">
                             <button
                                 className="bg-[#5AB8C8] hover:bg-[#499cac] text-white px-6 py-2 rounded-xl text-sm font-medium transition"
-                                onClick={handleNext}
-                                type="button"
+                                type="submit"
                             >
                                 Next
                             </button>

@@ -2,10 +2,10 @@ import type { ProjectFormData } from "../types/project";
 
 const ConnectorsList = ({
     connectors,
-    onDelete,
-}: {
+}: // onDelete,
+{
     connectors: ProjectFormData["connectors"];
-    onDelete: (jointNumber: number) => void;
+    // onDelete: (jointNumber: number) => void;
 }) => {
     if (!connectors || connectors.length === 0) {
         return (
@@ -36,7 +36,7 @@ const ConnectorsList = ({
                             </th>
                             <th className="px-4 py-2 border">Actual (m)</th>
                             <th className="px-4 py-2 border">Diff (m)</th>
-                            <th className="px-4 py-2 border"></th>
+                            {/* <th className="px-4 py-2 border"></th> */}
                         </tr>
                     </thead>
                     <tbody>
@@ -72,7 +72,7 @@ const ConnectorsList = ({
                                     {c.difference?.toFixed(4)}
                                 </td>
 
-                                <td className="px-4 py-2 border text-center">
+                                {/* <td className="px-4 py-2 border text-center">
                                     <button
                                         onClick={() => {
                                             if (
@@ -101,7 +101,7 @@ const ConnectorsList = ({
                                             />
                                         </svg>
                                     </button>
-                                </td>
+                                </td> */}
                             </tr>
                         ))}
                     </tbody>

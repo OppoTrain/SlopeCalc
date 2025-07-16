@@ -6,6 +6,7 @@ import ConnectorsList from "../components/ConnectorsList";
 import BackButton from "../components/BackButton";
 import ConnectorResultForm from "../components/ConnectorResultForm";
 import type { ConnectorType } from "../types/connectors.types";
+import CameraBtn from "../components/CameraBtn";
 
 const Connectors = () => {
     const { id } = useParams();
@@ -91,33 +92,42 @@ const Connectors = () => {
     };
 
     const handleFinish = () => {
+        if (jointDistance.length > 0 || actualHeight.length > 0) {
+            handleSave();
+        }
         navigate(`/projects/${id}/review`);
     };
 
-    const handleDelete = (jointNumberToDelete: number) => {
-        if (!project || !connectors) return;
+    // const handleDelete = (jointNumberToDelete: number) => {
+    //     if (!project || !connectors) return;
 
-        const updatedConnectors = connectors
-            .filter((c) => c.jointNumber !== jointNumberToDelete)
-            .map((c, index) => ({ ...c, jointNumber: index + 1 }));
+    //     const updatedConnectors = connectors
+    //         .filter((c) => c.jointNumber !== jointNumberToDelete)
+    //         .map((c, index) => ({ ...c, jointNumber: index + 1 }));
 
-        const updatedProject: ProjectFormData = {
-            ...project,
-            connectors: updatedConnectors,
-        };
+    //     const updatedProject: ProjectFormData = {
+    //         ...project,
+    //         connectors: updatedConnectors,
+    //     };
 
-        updateProjectInStorage(updatedProject);
-        setProject(updatedProject);
-        setConnectors(updatedConnectors);
-    };
+    //     updateProjectInStorage(updatedProject);
+    //     setProject(updatedProject);
+    //     setConnectors(updatedConnectors);
+    // };
 
     if (!project) return <div>Loading project...</div>;
 
     return (
         <>
-            <BackButton />
+            <div className="flex justify-between items-center mt-4 mx-4">
+                <BackButton />
+                <CameraBtn id={project.id ?? "0"} />
+            </div>
             <ProjectDetailsSection project={project} />
-            <ConnectorsList connectors={connectors} onDelete={handleDelete} />
+            <ConnectorsList
+                connectors={connectors}
+                // onDelete={handleDelete}
+            />
 
             <div className="bg-white rounded-xl shadow-lg p-6 m-4 space-y-6 border border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-800">
