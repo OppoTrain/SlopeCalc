@@ -58,6 +58,7 @@ const EditProjectModal = ({
                                 <input
                                     id={name}
                                     type={type}
+                                    min={type === "number" ? 0 : undefined}
                                     placeholder={`Enter ${label.toLowerCase()}`}
                                     {...register(name as keyof ProjectFormData)}
                                     className="mt-1 block w-full p-2 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"

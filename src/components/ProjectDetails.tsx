@@ -1,4 +1,5 @@
 import type { ProjectFormData } from "../types/project";
+import { formatDateTime } from "../utils/formatDateAndTime";
 
 const ProjectDetailsSection = ({
     project,
@@ -29,7 +30,10 @@ const ProjectDetailsSection = ({
                     </div>
                     <div>
                         <span className="font-medium">Date:</span>{" "}
-                        {projectDetails.date}
+                        {formatDateTime(
+                            projectDetails.date,
+                            projectDetails.time
+                        )}
                     </div>
                     <div>
                         <span className="font-medium">Location:</span>{" "}
@@ -38,7 +42,7 @@ const ProjectDetailsSection = ({
                     {projectDetails.slope && (
                         <div>
                             <span className="font-medium">Slope:</span>{" "}
-                            {projectDetails.slope}
+                            {`${projectDetails.slope}%`}
                         </div>
                     )}
                 </div>

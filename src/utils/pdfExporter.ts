@@ -1,8 +1,8 @@
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { PDFDocument, rgb } from "pdf-lib";
 import type { ProjectFormData } from "../types/project";
+import fontkit from "@pdf-lib/fontkit";
 
-// Converts Uint8Array to base64
 function uint8ToBase64(bytes: Uint8Array): string {
     let binary = "";
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -27,14 +27,20 @@ export async function generatePdf(
     project: ProjectFormData
 ): Promise<Uint8Array | null> {
     try {
+        // Load font from public assets folder
+        const fontBytes = await fetch(
+            "../../assets/fonts/Cairo-Regular.ttf"
+        ).then((res) => res.arrayBuffer());
+
         const pdfDoc = await PDFDocument.create();
+        pdfDoc.registerFontkit(fontkit);
         let page = pdfDoc.addPage([600, 800]);
         const { height } = page.getSize();
-
         const fontSize = 12;
         const lineHeight = 18;
         let y = height - 50;
         const marginX = 50;
+        const arabicFont = await pdfDoc.embedFont(fontBytes);
 
         const drawText = (
             text: string,
@@ -43,7 +49,7 @@ export async function generatePdf(
             size = fontSize,
             color = rgb(0, 0, 0)
         ) => {
-            page.drawText(text, { x, y: yPos, size, color });
+            page.drawText(text, { x, y: yPos, font: arabicFont, size, color });
         };
 
         const addHeader = (title: string) => {
@@ -65,9 +71,12 @@ export async function generatePdf(
             ["Project Name", project.projectDetails.projectName],
             ["Contractor", project.projectDetails.contractorName],
             ["Inspector", project.projectDetails.inspectorName],
-            ["Date", project.projectDetails.date],
+            [
+                "Date",
+                `${project.projectDetails.date} at ${project.projectDetails.time}`,
+            ],
             ["Location", project.projectDetails.location],
-            ["Slope", project.projectDetails.slope || "-"],
+            ["Slope", `${project.projectDetails.slope}%`],
         ];
 
         details.forEach(([label, value]) => {
@@ -76,6 +85,86 @@ export async function generatePdf(
             drawText(value || "-", marginX + 150, y);
             y -= lineHeight;
         });
+        // Project Setup Details
+        addHeader("Project Setup Details");
+
+        const startElevation =
+            project.elevationsDetails?.startElevation
+                ?.toFixed(2)
+                .concat(" m") ?? "N/A";
+        const endElevation =
+            project.elevationsDetails?.endElevation?.toFixed(2).concat(" m") ??
+            "N/A";
+        const pipeLength =
+            project.pipeDetails?.pipeLength?.toFixed(2).concat(" m") ?? "N/A";
+        const slope = project.projectDetails?.slope?.concat("%") ?? "N/A";
+
+        const setupHeaders = [
+            "Start Elevation",
+            "End Elevation",
+            "Total Length",
+            "Slope %",
+        ];
+        const setupValues = [startElevation, endElevation, pipeLength, slope];
+        const colWidth = 130;
+        const setupHeaderColor = rgb(0.2, 0.2, 0.2);
+
+        checkPageSpace(40);
+        setupHeaders.forEach((text, i) =>
+            drawText(text, marginX + i * colWidth, y, 10, setupHeaderColor)
+        );
+        y -= lineHeight;
+
+        setupValues.forEach((val, i) =>
+            drawText(val.toString(), marginX + i * colWidth, y, 10)
+        );
+        y -= lineHeight;
+
+        // Project Setup Details
+        addHeader("Pipe Details");
+
+        const pipeDiameter =
+            project.pipeDetails?.pipeDiameter.concat(" mm") ?? "N/A";
+        const pipeType = project.pipeDetails?.pipeType ?? "N/A";
+
+        const setupPipHeaders = ["Pipe Diameter", "Pipe Length", "Pipe Type"];
+        const setupPipValues = [pipeDiameter, pipeLength, pipeType];
+
+        checkPageSpace(40);
+        setupPipHeaders.forEach((text, i) =>
+            drawText(text, marginX + i * colWidth, y, 10, setupHeaderColor)
+        );
+        y -= lineHeight;
+
+        setupPipValues.forEach((val, i) =>
+            drawText(val.toString(), marginX + i * colWidth, y, 10)
+        );
+        y -= lineHeight;
+
+        // Project Setup Details
+        addHeader("Manhole Details");
+
+        const startManhole =
+            project.manholeDetails?.startManhole.concat(" mm") ?? "N/A";
+        const endManhole =
+            project.manholeDetails?.endManhole.concat(" mm") ?? "N/A";
+
+        const setupManholeHeaders = [
+            "Start Manhole Diameter",
+            "End Manhole Diameter",
+        ];
+        const setupManholeValues = [startManhole, endManhole];
+
+        checkPageSpace(40);
+        setupManholeHeaders.forEach((text, i) =>
+            drawText(text, marginX + i * colWidth, y, 10, setupHeaderColor)
+        );
+        y -= lineHeight;
+
+        setupManholeValues.forEach((val, i) =>
+            drawText(val.toString(), marginX + i * colWidth, y, 10)
+        );
+        y -= lineHeight;
 
         // Connectors Table
         if (project.connectors && project.connectors.length > 0) {
@@ -217,7 +306,7 @@ export const processPDF = async (data: ProjectFormData) => {
         if (file) {
             const path = await savePdfToFile(
                 file,
-                data.projectDetails.projectName || "project"
+                `project_${data.projectDetails.projectName || "project"}`
             );
             if (path) {
                 alert(`PDF saved successfully: ${path}`);

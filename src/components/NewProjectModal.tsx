@@ -5,6 +5,7 @@ import { fields } from "../utils/ProjectFields";
 
 const NewProjectModal = ({ onClose }: { onClose: () => void }) => {
     const todayDate = new Date().toISOString().split("T")[0];
+    const currentTime = new Date().toTimeString().slice(0, 5);
 
     const {
         register,
@@ -16,6 +17,7 @@ const NewProjectModal = ({ onClose }: { onClose: () => void }) => {
         defaultValues: {
             projectDetails: {
                 date: todayDate,
+                time: currentTime,
             },
         },
     });
@@ -73,6 +75,7 @@ const NewProjectModal = ({ onClose }: { onClose: () => void }) => {
                                     <input
                                         id={name}
                                         type={type}
+                                        min={type === "number" ? 0 : undefined}
                                         placeholder={placeHolder}
                                         {...register(
                                             name as keyof ProjectFormData

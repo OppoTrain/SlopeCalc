@@ -23,7 +23,9 @@ const ProjectSetup = () => {
         reset,
         getValues,
         formState: { errors },
+        setError,
     } = useForm<ProjectFormData>({
+        mode: "onChange",
         resolver: zodResolver(projectSchema),
         defaultValues: {},
     });
@@ -51,6 +53,37 @@ const ProjectSetup = () => {
     const handleCalculateSlope = () => {
         const formValues = getValues();
         const calculatedSlope = calculateSlope(formValues);
+
+        if (isNaN(formValues.pipeDetails.pipeLength ?? NaN)) {
+            setError("pipeDetails.pipeLength", {
+                type: "manual",
+                message: "Pipe Length is required.",
+            });
+        }
+
+        if (
+            !formValues.elevationsDetails ||
+            isNaN(formValues.elevationsDetails.startElevation ?? NaN)
+        ) {
+            setError("elevationsDetails.startElevation", {
+                type: "manual",
+                message: "Start elevation is required.",
+            });
+        }
+
+        if (
+            !formValues.elevationsDetails ||
+            isNaN(formValues.elevationsDetails.endElevation ?? NaN)
+        ) {
+            setError("elevationsDetails.endElevation", {
+                type: "manual",
+                message: "End elevation is required.",
+            });
+        }
+
+        if (isNaN(calculatedSlope)) {
+            return;
+        }
 
         setSlope(calculatedSlope);
 
@@ -153,6 +186,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
+                            min={0}
                             disabled={isEdit}
                             {...register("pipeDetails.pipeLength", {
                                 valueAsNumber: true,
@@ -173,6 +207,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
+                            min={0}
                             disabled={isEdit}
                             {...register("elevationsDetails.startElevation", {
                                 valueAsNumber: true,
@@ -196,6 +231,7 @@ const ProjectSetup = () => {
                         <input
                             type="number"
                             step="any"
+                            min={0}
                             disabled={isEdit}
                             {...register("elevationsDetails.endElevation", {
                                 valueAsNumber: true,

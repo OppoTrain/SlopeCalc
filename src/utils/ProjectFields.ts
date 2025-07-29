@@ -16,6 +16,12 @@ export const fields = [
         placeHolder: "Select date",
     },
     {
+        name: "projectDetails.time",
+        label: "Time",
+        type: "time",
+        placeHolder: "Select time",
+    },
+    {
         name: "projectDetails.inspectorName",
         label: "Inspector Name",
         placeHolder: "Enter inspector name",
@@ -28,6 +34,7 @@ export const fields = [
     {
         name: "pipeDetails.pipeDiameter",
         label: "Pipe Diameter (mm)",
+        type: "number",
         placeHolder: "Enter pipe diameter e.g., 300, 400",
     },
     {
@@ -38,11 +45,13 @@ export const fields = [
     {
         name: "manholeDetails.startManhole",
         label: "Start Manhole Diameter (mm)",
+        type: "number",
         placeHolder: "Enter start manhole diameter e.g., 300, 400",
     },
     {
         name: "manholeDetails.endManhole",
         label: "End Manhole Diameter (mm)",
+        type: "number",
         placeHolder: "Enter end manhole diameter e.g., 300, 400",
     },
 ];

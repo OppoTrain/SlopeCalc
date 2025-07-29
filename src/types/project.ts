@@ -6,6 +6,7 @@ export const projectSchema = z.object({
         projectName: z.string().min(1, "Project name is required"),
         contractorName: z.string().min(1, "Contractor name is required"),
         date: z.string().min(1, "Date is required"),
+        time: z.string().min(1, "Time is required"),
         inspectorName: z.string().min(1, "Inspector name is required"),
         location: z.string().min(1, "Location is required"),
         slope: z.string().optional(),
@@ -14,7 +15,7 @@ export const projectSchema = z.object({
     pipeDetails: z.object({
         pipeDiameter: z.string().min(1, "Pipe diameter is required"),
         pipeType: z.string().min(1, "Pipe type is required"),
-        pipeLength: z.number().optional(),
+        pipeLength: z.number({ message: "Pipe Length is required" }).optional(),
     }),
     manholeDetails: z.object({
         startManhole: z.string().min(1, "Start manhole is required"),
@@ -22,8 +23,8 @@ export const projectSchema = z.object({
     }),
     elevationsDetails: z
         .object({
-            startElevation: z.number().optional(),
-            endElevation: z.number().optional(),
+            startElevation: z.number({ message: "Start elevation is required" }).optional(),
+            endElevation: z.number({ message: "End elevation is required" }).optional(),
         })
         .optional(),
     connectors: z

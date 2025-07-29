@@ -6,11 +6,14 @@ import ConnectorsList from "../components/ConnectorsList";
 import BackButton from "../components/BackButton";
 import { processPDF } from "../utils/pdfExporter";
 import CameraBtn from "../components/CameraBtn";
+import ProjectSetupDetails from "../components/ProjectSetupDetails";
 
 const Review = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [project, setProject] = useState<ProjectFormData | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportSuccess, setExportSuccess] = useState(false);
 
     useEffect(() => {
         const storedProjects = JSON.parse(
@@ -22,7 +25,27 @@ const Review = () => {
         setProject(currentProject || null);
     }, [id]);
 
-    if (!project) return <div>Loading project...</div>;
+    const handlePDFExport = async () => {
+        if (!project) {
+            alert("Project data is not available.");
+            return;
+        }
+
+        setIsExporting(true);
+        setExportSuccess(false);
+        try {
+            await processPDF(project);
+            setExportSuccess(true);
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+            alert("Failed to export PDF. Please try again.");
+        } finally {
+            setIsExporting(false);
+            setTimeout(() => setExportSuccess(false), 3000); // Reset after 3s
+        }
+    };
+
+    if (!project) return <div className="m-4">Loading project...</div>;
 
     const connectors = project.connectors || [];
 
@@ -32,56 +55,57 @@ const Review = () => {
                 <BackButton />
                 <CameraBtn id={project.id ?? "0"} />
             </div>
-            <div className="mx-4 space-x-4 mt-6">
+
+            <div className="mx-4 space-y-4 mt-6">
                 <button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-xl transition"
-                    onClick={() => {
-                        if (!project) {
-                            alert("Project data is not available.");
-                            return;
-                        }
-                        processPDF(project);
-                        return false;
-                    }}
+                    className={`w-full ${
+                        isExporting
+                            ? "bg-gray-500"
+                            : "bg-green-600 hover:bg-green-700"
+                    } text-white font-semibold px-6 py-2 rounded-xl transition flex justify-center items-center`}
+                    onClick={handlePDFExport}
+                    disabled={isExporting}
                 >
-                    Export to PDF
+                    {isExporting ? (
+                        <>
+                            <svg
+                                className="animate-spin h-5 w-5 mr-2 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                ></circle>
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                ></path>
+                            </svg>
+                            Exporting...
+                        </>
+                    ) : (
+                        "Export to PDF"
+                    )}
                 </button>
-                {/* <button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-xl transition"
-                    onClick={() => {
-                        window.confirm("Export to Excel clicked");
-                    }}
-                >
-                    Export to Excel
-                </button> */}
+
+                {exportSuccess && (
+                    <div className="text-green-600 font-medium transition-all duration-300">
+                        ✅ PDF exported successfully!
+                    </div>
+                )}
             </div>
+
             <ProjectDetailsSection project={project} />
-            <ConnectorsList
-                connectors={connectors}
-                // onDelete={(jointNumber) => {
-                //     const updatedConnectors = connectors
-                //         .filter((c) => c.jointNumber !== jointNumber)
-                //         .map((c, index) => ({
-                //             ...c,
-                //             jointNumber: index + 1,
-                //         }));
-                //     const updatedProject = {
-                //         ...project,
-                //         connectors: updatedConnectors,
-                //     };
-                //     setProject(updatedProject);
-                //     localStorage.setItem(
-                //         "projects",
-                //         JSON.stringify(
-                //             JSON.parse(
-                //                 localStorage.getItem("projects") || "[]"
-                //             ).map((p: { id: string | undefined }) =>
-                //                 p.id === id ? updatedProject : p
-                //             )
-                //         )
-                //     );
-                // }}
-            />
+            <ProjectSetupDetails project={project} />
+            <ConnectorsList connectors={connectors} />
+
             <div className="flex justify-end mx-4 mb-4">
                 <button
                     onClick={() => navigate(`/`)}

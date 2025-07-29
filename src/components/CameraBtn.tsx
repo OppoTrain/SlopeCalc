@@ -36,11 +36,11 @@ const CameraBtn = ({ id }: { id: string }) => {
                     "projects",
                     JSON.stringify(updatedProjects)
                 );
+                window.location.reload();
                 return updatedProject;
             }
         } catch (error) {
             console.error("Camera or gallery error:", error);
-            alert("Error capturing or saving photo: " + error);
         }
     };
 

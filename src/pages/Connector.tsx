@@ -59,7 +59,7 @@ const Connectors = () => {
             distance;
 
         const elevationDrop = cumulativeDistance * slope;
-        const theoreticalElevation = startElevation - elevationDrop;
+        const theoreticalElevation = startElevation + elevationDrop;
         const difference = height - theoreticalElevation;
 
         const newJoint = {
@@ -142,10 +142,10 @@ const Connectors = () => {
                         <input
                             type="number"
                             step="any"
+                            min={0}
                             value={jointDistance}
                             onChange={(e) => setJointDistance(e.target.value)}
                             className="w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-[#5AB8C8] focus:border-[#5AB8C8]"
-                            min="0"
                         />
                     </div>
 
@@ -156,10 +156,10 @@ const Connectors = () => {
                         <input
                             type="number"
                             step="any"
+                            min={0}
                             value={actualHeight}
                             onChange={(e) => setActualHeight(e.target.value)}
                             className="w-full rounded-md border border-gray-300 p-2 text-sm focus:ring-[#5AB8C8] focus:border-[#5AB8C8]"
-                            min="0"
                         />
                     </div>
                 </div>

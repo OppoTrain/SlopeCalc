@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ProjectFormData } from "../types/project";
 import { useNavigate } from "react-router-dom";
 import EditProjectModal from "./EditProjectModal";
+import { formatDateTime } from "../utils/formatDateAndTime";
 
 const ProjectCard = ({ project }: { project: ProjectFormData }) => {
     const navigate = useNavigate();
@@ -22,12 +23,14 @@ const ProjectCard = ({ project }: { project: ProjectFormData }) => {
         );
 
         localStorage.setItem("projects", JSON.stringify(updatedProjects));
-        window.location.reload(); 
+        window.location.reload();
     };
 
     const handleClick = () => {
         navigate(`/projects/${project.id}`);
     };
+
+    
 
     return (
         <>
@@ -54,7 +57,12 @@ const ProjectCard = ({ project }: { project: ProjectFormData }) => {
                                     <span className="font-medium w-24">
                                         Date:
                                     </span>
-                                    <span>{project.projectDetails.date}</span>
+                                    <span>
+                                        {formatDateTime(
+                                            project.projectDetails.date,
+                                            project.projectDetails.time
+                                        )}
+                                    </span>
                                 </div>
                                 <div className="flex">
                                     <span className="font-medium w-24">
